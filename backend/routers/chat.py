@@ -17,6 +17,23 @@ FINANCE_KEYWORDS = [
     "상품", "이율", "통장", "투자", "자산", "담보", "빌리",
 ]
 
+# 온통청년 검색 시 추출할 핵심 키워드 (문장에서 이것들만 뽑아 짧은 검색어로 사용)
+ONTONG_SEARCH_TERMS = [
+    "주거", "취업", "창업", "교육", "장학", "복지", "수당", "바우처",
+    "일자리", "훈련", "직업", "청년", "임대", "전세", "월세", "금융",
+    "저축", "적금", "대출", "생활비", "심리", "상담", "건강",
+]
+
+
+def _extract_search_keyword(query: str) -> str:
+    """쿼리에서 온통청년 API 검색에 적합한 짧은 키워드를 추출합니다."""
+    for term in ONTONG_SEARCH_TERMS:
+        if term in query:
+            return term
+    # 매칭되는 키워드 없으면 첫 2단어 사용
+    words = query.replace("?", "").replace(".", "").split()
+    return " ".join(words[:2]) if words else query
+
 
 class ChatMessage(BaseModel):
     role: str
@@ -53,7 +70,8 @@ async def chat(request: ChatRequest):
 
     tasks = []
     if use_ontong:
-        tasks.append(("ontong", search_youth_policies(request.message)))
+        search_kw = _extract_search_keyword(request.message)
+        tasks.append(("ontong", search_youth_policies(search_kw)))
     if use_fss:
         tasks.append(("fss", search_financial_products(request.message)))
 
