@@ -124,6 +124,24 @@ with st.sidebar:
     st.divider()
     st.markdown("**OpenAI API 키 발급**")
     st.markdown("[platform.openai.com](https://platform.openai.com/api-keys) 에서 발급")
+    st.divider()
+    if st.button("🗑️ 대화 초기화", use_container_width=True):
+        st.session_state.messages = [
+            {
+                "role": "assistant",
+                "content": (
+                    "안녕하세요! 저는 **Wallet Guard**입니다.\n\n"
+                    "**온통청년**과 **금융감독원** 데이터를 기반으로 "
+                    "청년 정책 및 금융 상품 정보를 안내해 드립니다.\n\n"
+                    "💬 예시 질문:\n"
+                    "- 청년 주거 지원 정책이 뭐가 있나요?\n"
+                    "- 금리 높은 적금 상품 추천해주세요\n"
+                    "- 청년 창업 지원 프로그램 알려주세요"
+                ),
+                "sources": [],
+            }
+        ]
+        st.rerun()
 
 
 st.markdown("""
