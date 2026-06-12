@@ -235,6 +235,7 @@ if st.session_state.show_profile_form:
             employment = st.selectbox("현재 상태", [
                 "취업 준비 중 (구직)", "재직 중 (직장인)",
                 "창업 준비 중", "대학(원)생", "프리랜서/자영업",
+                "군 전역 예정자",
             ])
             income = st.selectbox("월 소득 수준", [
                 "없음 (무직/학생)", "100만원 미만",
