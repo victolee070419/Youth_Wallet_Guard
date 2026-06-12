@@ -61,7 +61,7 @@ def _extract_search_keyword(query: str) -> str:
 
 # ── 비동기 처리 ──────────────────────────────────────────────
 
-async def _process(user_message: str, history: list) -> tuple[str, list]:
+async def _process(user_message: str, history: list, api_key: str = "") -> tuple[str, list]:
     use_ontong, use_fss = _resolve_targets(user_message)
 
     tasks = []
@@ -89,14 +89,13 @@ async def _process(user_message: str, history: list) -> tuple[str, list]:
                     sources.append("금융감독원")
 
     context = build_context(ontong_data, fss_data)
-    reply = await generate_response(user_message, context, history)
+    reply = await generate_response(user_message, context, history, api_key=api_key)
     return reply, sources
 
 
-def process_message(user_message: str, history: list) -> tuple[str, list]:
-    # 별도 스레드에서 이벤트 루프 실행 (Streamlit 내부 루프와 충돌 방지)
+def process_message(user_message: str, history: list, api_key: str = "") -> tuple[str, list]:
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-        future = pool.submit(asyncio.run, _process(user_message, history))
+        future = pool.submit(asyncio.run, _process(user_message, history, api_key))
         return future.result()
 
 
@@ -107,6 +106,25 @@ st.set_page_config(
     page_icon="🛡️",
     layout="centered",
 )
+
+# ── 사이드바: OpenAI API 키 입력 ─────────────────────────────
+with st.sidebar:
+    st.markdown("## 🔑 OpenAI API 키")
+    st.caption("직접 발급받은 키를 입력하세요. 키는 서버에 저장되지 않습니다.")
+    user_api_key = st.text_input(
+        "API Key",
+        type="password",
+        placeholder="sk-proj-...",
+        label_visibility="collapsed",
+    )
+    if user_api_key:
+        st.success("키가 입력되었습니다.")
+    else:
+        st.warning("API 키를 입력해야 채팅이 가능합니다.")
+    st.divider()
+    st.markdown("**OpenAI API 키 발급**")
+    st.markdown("[platform.openai.com](https://platform.openai.com/api-keys) 에서 발급")
+
 
 st.markdown("""
 <style>
@@ -179,6 +197,10 @@ if "pending_input" in st.session_state:
     user_input = st.session_state.pop("pending_input")
 
 if user_input:
+    if not user_api_key:
+        st.warning("왼쪽 사이드바에 OpenAI API 키를 먼저 입력해주세요.")
+        st.stop()
+
     st.session_state.messages.append({"role": "user", "content": user_input, "sources": []})
     with st.chat_message("user", avatar="🙋"):
         st.markdown(user_input)
@@ -190,7 +212,7 @@ if user_input:
                 for m in st.session_state.messages[:-1]
                 if m["role"] in ("user", "assistant")
             ]
-            reply, sources = process_message(user_input, history[-10:])
+            reply, sources = process_message(user_input, history[-10:], api_key=user_api_key)
 
         st.markdown(reply)
         if sources:

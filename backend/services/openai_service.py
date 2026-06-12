@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from openai import AsyncOpenAI
 import os
-from typing import Optional
-
-client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 SYSTEM_PROMPT = """당신은 'Wallet Guard'라는 청년 금융 및 정책 정보 도우미입니다.
 
@@ -112,7 +109,11 @@ async def generate_response(
     user_message: str,
     context: str,
     chat_history: list[dict],
+    api_key: str | None = None,
 ) -> str:
+    key = api_key or os.getenv("OPENAI_API_KEY")
+    client = AsyncOpenAI(api_key=key)
+
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     messages.extend(chat_history[-10:])
 
