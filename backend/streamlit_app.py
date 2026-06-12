@@ -170,6 +170,9 @@ with col2:
 st.divider()
 
 # 세션 초기화
+if "show_profile_form" not in st.session_state:
+    st.session_state.show_profile_form = False
+
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {
@@ -201,11 +204,60 @@ for msg in st.session_state.messages:
 
 # 제안 버튼
 suggestions = ["청년 주거 지원 정책", "금리 높은 적금 추천", "청년 창업 지원", "정기예금 비교"]
-cols = st.columns(len(suggestions))
-for col, sug in zip(cols, suggestions):
+cols = st.columns(len(suggestions) + 1)
+for col, sug in zip(cols[:-1], suggestions):
     if col.button(sug, use_container_width=True):
         st.session_state.pending_input = sug
+        st.session_state.show_profile_form = False
         st.rerun()
+if cols[-1].button("🎯 내 맞춤 정책", use_container_width=True):
+    st.session_state.show_profile_form = not st.session_state.show_profile_form
+    st.rerun()
+
+# 맞춤 정책 폼
+if st.session_state.show_profile_form:
+    with st.container(border=True):
+        st.markdown("#### 🎯 내 맞춤 정책 찾기")
+        st.caption("정보를 입력하면 나에게 딱 맞는 정책과 금융 상품을 추천해드립니다.")
+
+        c1, c2 = st.columns(2)
+        with c1:
+            age = st.number_input("나이", min_value=15, max_value=39, value=25, step=1)
+            region = st.selectbox("거주 지역", [
+                "전국", "서울", "경기", "인천", "부산", "대구",
+                "광주", "대전", "울산", "세종", "강원",
+                "충북", "충남", "전북", "전남", "경북", "경남", "제주",
+            ])
+            housing = st.selectbox("거주 형태", [
+                "월세", "전세", "자가", "기숙사/청년 시설", "부모님과 함께",
+            ])
+        with c2:
+            employment = st.selectbox("현재 상태", [
+                "취업 준비 중 (구직)", "재직 중 (직장인)",
+                "창업 준비 중", "대학(원)생", "프리랜서/자영업",
+            ])
+            income = st.selectbox("월 소득 수준", [
+                "없음 (무직/학생)", "100만원 미만",
+                "100~200만원", "200~300만원", "300만원 이상",
+            ])
+            interests = st.multiselect(
+                "관심 분야 (복수 선택)",
+                ["주거 지원", "취업/일자리", "창업", "교육/훈련",
+                 "금융 (예적금/대출)", "생활비 지원", "심리/건강"],
+                default=["주거 지원", "금융 (예적금/대출)"],
+            )
+
+        if st.button("맞춤 정책 추천받기 →", type="primary", use_container_width=True):
+            interest_str = ", ".join(interests) if interests else "청년 지원 전반"
+            query = (
+                f"나는 {age}세 청년이고 {region}에 살고 있어. "
+                f"거주 형태는 {housing}이고, 현재 상태는 {employment}야. "
+                f"월 소득은 {income}이고, 관심 있는 분야는 {interest_str}이야. "
+                f"내 상황에 맞는 청년 지원 정책과 금융 상품을 구체적으로 추천해줘."
+            )
+            st.session_state.pending_input = query
+            st.session_state.show_profile_form = False
+            st.rerun()
 
 # 채팅 입력
 user_input = st.chat_input("청년 정책이나 금융 상품에 대해 물어보세요…")
