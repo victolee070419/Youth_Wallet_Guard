@@ -220,38 +220,60 @@ if st.session_state.show_profile_form:
         st.markdown("#### 🎯 내 맞춤 정책 찾기")
         st.caption("정보를 입력하면 나에게 딱 맞는 정책과 금융 상품을 추천해드립니다.")
 
+        DIRECT = "✏️ 직접 입력"
+
+        def _resolve(sel, custom):
+            return custom.strip() if sel == DIRECT and custom.strip() else sel
+
         c1, c2 = st.columns(2)
         with c1:
-            age = st.number_input("나이", min_value=15, max_value=39, value=25, step=1)
-            region = st.selectbox("거주 지역", [
-                "전국", "서울", "경기", "인천", "부산", "대구",
+            age_sel = st.selectbox("나이", [DIRECT] + [f"{i}세" for i in range(15, 40)])
+            age_custom = st.text_input("나이 직접 입력", placeholder="예: 27세", label_visibility="collapsed") if age_sel == DIRECT else ""
+            age = _resolve(age_sel, age_custom)
+
+            region_sel = st.selectbox("거주 지역", [
+                DIRECT, "전국", "서울", "경기", "인천", "부산", "대구",
                 "광주", "대전", "울산", "세종", "강원",
                 "충북", "충남", "전북", "전남", "경북", "경남", "제주",
             ])
-            housing = st.selectbox("거주 형태", [
-                "월세", "전세", "자가", "기숙사/청년 시설", "부모님과 함께",
+            region_custom = st.text_input("거주 지역 직접 입력", placeholder="예: 경기 수원시", label_visibility="collapsed") if region_sel == DIRECT else ""
+            region = _resolve(region_sel, region_custom)
+
+            housing_sel = st.selectbox("거주 형태", [
+                DIRECT, "월세", "전세", "자가", "기숙사/청년 시설", "부모님과 함께",
             ])
+            housing_custom = st.text_input("거주 형태 직접 입력", placeholder="예: 고시원", label_visibility="collapsed") if housing_sel == DIRECT else ""
+            housing = _resolve(housing_sel, housing_custom)
+
         with c2:
-            employment = st.selectbox("현재 상태", [
-                "취업 준비 중 (구직)", "재직 중 (직장인)",
-                "창업 준비 중", "대학(원)생", "프리랜서/자영업",
-                "군 전역 예정자",
+            employment_sel = st.selectbox("현재 상태", [
+                DIRECT, "취업 준비 중 (구직)", "재직 중 (직장인)",
+                "창업 준비 중", "대학(원)생", "프리랜서/자영업", "군 전역 예정자",
             ])
-            income = st.selectbox("월 소득 수준", [
-                "없음 (무직/학생)", "100만원 미만",
+            employment_custom = st.text_input("현재 상태 직접 입력", placeholder="예: 육아휴직 중", label_visibility="collapsed") if employment_sel == DIRECT else ""
+            employment = _resolve(employment_sel, employment_custom)
+
+            income_sel = st.selectbox("월 소득 수준", [
+                DIRECT, "없음 (무직/학생)", "100만원 미만",
                 "100~200만원", "200~300만원", "300만원 이상",
             ])
+            income_custom = st.text_input("월 소득 직접 입력", placeholder="예: 350만원", label_visibility="collapsed") if income_sel == DIRECT else ""
+            income = _resolve(income_sel, income_custom)
+
             interests = st.multiselect(
                 "관심 분야 (복수 선택)",
                 ["주거 지원", "취업/일자리", "창업", "교육/훈련",
                  "금융 (예적금/대출)", "생활비 지원", "심리/건강"],
                 default=["주거 지원", "금융 (예적금/대출)"],
             )
+            interests_custom = st.text_input("관심 분야 직접 추가", placeholder="예: 문화생활 지원", label_visibility="collapsed")
+            if interests_custom.strip():
+                interests = interests + [interests_custom.strip()]
 
         if st.button("맞춤 정책 추천받기 →", type="primary", use_container_width=True):
             interest_str = ", ".join(interests) if interests else "청년 지원 전반"
             query = (
-                f"나는 {age}세 청년이고 {region}에 살고 있어. "
+                f"나는 {age} 청년이고 {region}에 살고 있어. "
                 f"거주 형태는 {housing}이고, 현재 상태는 {employment}야. "
                 f"월 소득은 {income}이고, 관심 있는 분야는 {interest_str}이야. "
                 f"내 상황에 맞는 청년 지원 정책과 금융 상품을 구체적으로 추천해줘."
