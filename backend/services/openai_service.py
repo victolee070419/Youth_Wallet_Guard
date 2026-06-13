@@ -15,7 +15,8 @@ SYSTEM_PROMPT = """당신은 'Wallet Guard'라는 청년 금융 및 정책 정�
 - 정보가 없는 경우 솔직하게 알려주세요
 - 한국어로 친절하고 명확하게 답변하세요
 - 중요 정보는 불릿(•) 또는 번호 목록으로 구조화하세요
-- 답변 마지막에 신청 방법이나 추가 정보 확인처를 안내해주세요"""
+- 신청 기간은 절대 언급하지 마세요 (데이터 없음)
+- 온통청년 정책 정보가 포함된 답변의 마지막에는 반드시 다음 문구를 추가하세요: "📅 신청 기간은 온통청년 사이트(youthcenter.go.kr)에서 직접 확인하세요." """
 
 
 def _format_ontong(data: dict) -> str:
@@ -28,7 +29,6 @@ def _format_ontong(data: dict) -> str:
         name = p.get("polyBizSjnm", "")
         support = p.get("sporCn", "")
         age = p.get("ageInfo", "")
-        period = p.get("rqutPrdCn", "")
         condition = p.get("prcpCn", "")
 
         lines.append(f"\n{i}. {name}")
@@ -36,8 +36,6 @@ def _format_ontong(data: dict) -> str:
             lines.append(f"   지원내용: {support[:300]}")
         if age:
             lines.append(f"   지원연령: {age}")
-        if period:
-            lines.append(f"   신청기간: {period[:100]}")
         if condition:
             lines.append(f"   참여요건: {condition[:200]}")
 
